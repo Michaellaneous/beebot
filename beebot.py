@@ -9,6 +9,7 @@ from io import BytesIO
 import PIL
 import os
 import random
+import collections
 
 class BeeClient(discord.Client):
     async def on_ready(self):
@@ -16,13 +17,14 @@ class BeeClient(discord.Client):
         print(self.user.name)
         print(self.user.id)
         print('------')
-        channel = await client.fetch_channel('330158485704802305')
+        
+        # channel = await client.fetch_channel('330158485704802305')
 
-        with open('markov.txt' , "w+", encoding="utf-8") as output_file:
-            async for message in channel.history(limit=100000):
-                output = message.content + "\n"
-                output_file.write(output)
-
+        # with open('markov.txt' , "w+", encoding="utf-8") as output_file:
+        #     async for message in channel.history(limit=100000):
+        #         output = message.content + "\n"
+        #         output_file.write(output)
+    
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
@@ -34,6 +36,7 @@ class BeeClient(discord.Client):
                 return
             
             if sentEmoji.animated:
+                await message.delete()
                 await message.channel.send(f'https://cdn.discordapp.com/emojis/{sentEmoji.id}.gif?quality=lossless')
                 return
             else:
@@ -57,6 +60,7 @@ class BeeClient(discord.Client):
                 img.save(f'{imgName}.png')
                 with open(f'{imgName}.png', 'rb') as f:
                     pic = discord.File(f)
+                    await message.delete()
                     await message.channel.send(file=pic)
                 os.remove(f'{imgName}.png')
                 
@@ -129,10 +133,43 @@ class BeeClient(discord.Client):
             # await user.send('<3')
         
         if message.content.startswith('!bonk'):
+            await message.delete()
             await message.channel.send('https://tenor.com/view/bonk-gif-24239187')
             
         if message.content.startswith('!lies'):
+            await message.delete()
             await message.channel.send('https://i.imgur.com/a5p3P1r.jpg')
+            
+        if message.content.startswith('!talk'):
+            seedWord = random.choice(wordList)
+            sentenceLength = random.randint(7, 25)
+
+            sentence = seedWord.capitalize()
+            for i in range(0, sentenceLength):
+                nextWord = random.choice(markovTable[seedWord])
+                seedWord = nextWord
+
+                sentence += " " + seedWord
+            
+            await message.delete()
+            await message.channel.send(sentence)
+            
+        if message.content.startswith('!nickme'):
+            seedWord = random.choice(wordList)
+            nickLength = random.randint(1, 2)
+
+            newNick = seedWord.capitalize()
+            for i in range(0, nickLength):
+                nextWord = random.choice(markovTable[seedWord])
+                seedWord = nextWord
+
+                newNick += " " + seedWord
+            
+            newNick += f' | {message.author.name}'
+            
+            await message.author.edit(nick=newNick[:31])
+            await message.channel.send(f'Nickname set to {newNick[:31]}')
+            return
             
         if message.content.startswith('!tag'):
             roles = {
@@ -402,6 +439,19 @@ with open('redditID') as f:
     
 with open('redditSecret') as f:
     redditSecret = f.read()
+
+with open('markovClean.txt') as input_file:
+    text = input_file.read()
+    
+def createMarkov(normalized_text):
+    words = normalized_text.split()
+    markovTable = collections.defaultdict(list)
+    for current, next in zip(words, words[1:]):
+        markovTable[current].append(next)    
+    return markovTable
+
+markovTable = createMarkov(text)
+wordList = list(markovTable.keys())
 
 with open('token') as f:
     token = f.read()
