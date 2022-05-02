@@ -16,6 +16,12 @@ class BeeClient(discord.Client):
         print(self.user.name)
         print(self.user.id)
         print('------')
+        channel = await client.fetch_channel('330158485704802305')
+
+        with open('markov.txt' , "w+", encoding="utf-8") as output_file:
+            async for message in channel.history(limit=100000):
+                output = message.content + "\n"
+                output_file.write(output)
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
@@ -101,13 +107,32 @@ class BeeClient(discord.Client):
                     await message.channel.send(submission.url)
                     await reddit.close()
                     return
+
+        if message.content.startswith('!bee'):
+            reddit = asyncpraw.Reddit(
+                client_id=redditID,
+                client_secret=redditSecret,
+                user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
+            )
+            
+            subreddit = await reddit.subreddit('bees')
+            while True:            
+                submission = await subreddit.random()
+                image_formats = ('png', 'jpg', 'jpeg', 'gif')
+                if str(submission.url).split('.')[-1] in image_formats:
+                    await message.channel.send(submission.url)
+                    await reddit.close()
+                    return
                 
-        if message.content.startswith('!lux'):
-            user = await client.fetch_user('298254692444667904')
-            await user.send('<3')
+        # if message.content.startswith('!lux'):
+            # user = await client.fetch_user('298254692444667904')
+            # await user.send('<3')
         
         if message.content.startswith('!bonk'):
             await message.channel.send('https://tenor.com/view/bonk-gif-24239187')
+            
+        if message.content.startswith('!lies'):
+            await message.channel.send('https://i.imgur.com/a5p3P1r.jpg')
             
         if message.content.startswith('!tag'):
             roles = {
