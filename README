@@ -1,0 +1,7 @@
+What you need:
+An sqlite3 DB called beebot.db
+
+With these 3 tables:
+nicknames (nick text)
+tags (tag text, id bigint)
+colors (color text, id bigint)
