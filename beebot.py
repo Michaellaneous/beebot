@@ -4,14 +4,13 @@ import typing
 import asyncpraw
 import random
 import requests
-from PIL import Image, ImageSequence
-from io import BytesIO
-import PIL
 import os
 import random
 import collections
-#import tinydb
 import asyncio
+from PIL import Image
+from io import BytesIO
+import sqlite3
 
 class BeeClient(discord.Client):
     async def on_ready(self):
@@ -65,10 +64,7 @@ class BeeClient(discord.Client):
                 wpercent = (basewidth/float(img.size[0]))
                 hsize = int((float(img.size[1])*float(wpercent)))
                 
-                try:
-                    option = str(message.content).split(' ')[-1]
-                except:
-                    pass
+                option = str(message.content).split(' ')[-1]
 
                 if option == 'aa':
                     img = img.resize((basewidth,hsize), Image.ANTIALIAS)
@@ -150,6 +146,23 @@ class BeeClient(discord.Client):
                     await reddit.close()
                     return
                 
+        if message.content.startswith('!bird'):
+            await message.channel.send('Buzzing for a good image...')
+            reddit = asyncpraw.Reddit(
+                client_id=redditID,
+                client_secret=redditSecret,
+                user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
+            )
+            
+            subreddit = await reddit.subreddit('birdpics')
+            while True:            
+                submission = await subreddit.random()
+                image_formats = ('png', 'jpg', 'jpeg', 'gif')
+                if str(submission.url).split('.')[-1] in image_formats:
+                    await message.channel.send(submission.url)
+                    await reddit.close()
+                    return
+                
         # if message.content.startswith('!lux'):
             # user = await client.fetch_user('298254692444667904')
             # await user.send('<3')
@@ -193,17 +206,54 @@ class BeeClient(discord.Client):
             await message.channel.send(f'Nickname set to {newNick[:31]}')
             return
         
+        if message.content.startswith('!nickname'):
+            rowCount = 0
+            for row in cur.execute('SELECT COUNT(*) FROM nicknames'):
+                rowCount = row[0]
+                
+            option = str(message.content).split(' ')[-1]
+            
+            if option == '!nickname':
+                for i in range(0, 10):
+                    seedWord = random.choice(wordList)
+                    nickLength = random.randint(1, 2)
+
+                    newNick = seedWord
+                    for i in range(0, nickLength):
+                        nextWord = random.choice(markovTable[seedWord])
+                        seedWord = nextWord
+
+                        newNick += " " + seedWord
+                    
+                    cur.execute(f"INSERT INTO nicknames VALUES ('{newNick}')")
+                con.commit()
+                
+                toSend = '```Your choices are:'
+                for row in cur.execute('SELECT * FROM(SELECT ROWID,nick from nicknames ORDER BY ROWID DESC LIMIT 10) ORDER BY ROWID ASC'):
+                    toSend += f'\n{row[0]}. {row[1]}'
+                toSend += '```'
+                await message.channel.send(toSend)
+            elif int(option) > rowCount:
+                await message.channel.send("I don't have that many nicknames on offer.")
+            else:
+                for row in cur.execute(f'SELECT nick FROM nicknames WHERE ROWID = {option}'):
+                    newNick = f'{row[0]} | {message.author.name}'
+                await message.author.edit(nick=newNick[:31])
+                await message.channel.send(f'Nickname set to {newNick[:31]}')                
+        
         if message.content.startswith('!help'):
             msg = """```beebot Version 0.0.1bee
             
 Available commands:
 !help - Display this message.
 !nickme - Give yourself a random nickname.
+!nickname - Generate a list of nicknames you can pick from.
+!nickname <number> - Pick one of them.
 !hugemoji :emoji: / !hugemoji :emoji: aa - A massive version of the emoji of your choice. aa might make some emojis look better when enlargened. [aliases: !hm]
 !talk - Spout nonsense, inspired by goons. [aliases: !speak]
 !tag <tag> - Tag yourself for one of our many games.
 !color <color> - Give yourself a fancy new look.
-!racon, !capybara, !bee, !frog - For all your animal needs.```
+!racon, !capybara, !bee, !frog, !bird - For all your animal needs.```
 """
             
             await message.channel.send(msg)
@@ -495,6 +545,11 @@ def createMarkov(normalized_text):
 markovTable = createMarkov(text)
 wordList = list(markovTable.keys())
 nicknameList = {}
+
+con = sqlite3.connect(':memory:')
+cur = con.cursor()
+cur.execute('CREATE TABLE nicknames (nick text)')
+con.commit()
 
 with open('token') as f:
     token = f.read()
