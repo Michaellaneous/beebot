@@ -11,6 +11,7 @@ import os
 import random
 import collections
 #import tinydb
+import asyncio
 
 class BeeClient(discord.Client):
     async def on_ready(self):
@@ -25,12 +26,28 @@ class BeeClient(discord.Client):
         #     async for message in channel.history(limit=100000):
         #         output = message.content + "\n"
         #         output_file.write(output)
+        
+        while True:
+            await asyncio.sleep(random.randint(1800, 3600)) # This is the sleep method.
+            seedWord = random.choice(wordList)
+            sentenceLength = random.randint(7, 25)
+
+            sentence = seedWord.capitalize()
+            for i in range(0, sentenceLength):
+                nextWord = random.choice(markovTable[seedWord])
+                seedWord = nextWord
+
+                sentence += " " + seedWord
+            
+            channel = await client.fetch_channel('330158485704802305')
+            await channel.send(sentence)
+            
     
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('!hugemoji'):
+        if message.content.startswith('!hugemoji') or message.content.startswith('!hm'):
             try:
                 sentEmoji = get_message_emojis(message)[0]
             except IndexError:
@@ -146,7 +163,7 @@ class BeeClient(discord.Client):
         if message.content.startswith('!punchy'):
             await message.channel.send('https://rlv.zcache.com/happy_face_smiling_tomato_cutout-read27a2db5524c62b0708aeb7ccda5d0_x7saw_8byvr_540.webp')
 
-        if message.content.startswith('!talk'):
+        if message.content.startswith('!talk') or message.content.startswith('!speak'):
             seedWord = random.choice(wordList)
             sentenceLength = random.randint(7, 25)
 
@@ -182,112 +199,112 @@ class BeeClient(discord.Client):
 Available commands:
 !help - Display this message.
 !nickme - Give yourself a random nickname.
-!hugemoji :emoji: / !hugemoji :emoji: aa - A massive version of the emoji of your choice. aa might make some emojis look better when enlargened.
-!talk - Spout nonsense, inspired by goons.
+!hugemoji :emoji: / !hugemoji :emoji: aa - A massive version of the emoji of your choice. aa might make some emojis look better when enlargened. [aliases: !hm]
+!talk - Spout nonsense, inspired by goons. [aliases: !speak]
 !tag <tag> - Tag yourself for one of our many games.
 !color <color> - Give yourself a fancy new look.
 !racon, !capybara, !bee, !frog - For all your animal needs.```
-            """
+"""
             
             await message.channel.send(msg)
         
         if message.content.startswith('!tag'):
             roles = {
-                'tag-goblin': '934217787038130256',
-                'tag-racon': '471770802727944192',
-                'lakers fan ': '467510519704846337',
-                'noted anime lover': '467511307382554629',
-                'tag-nfl': '391384162415673395',
-                'tag-ffr': '616304706880274452',
-                'tag-callofduty': '467487877039652875',
-                'tag-warzone': '687365517996326913',
-                'tag-destiny': '467488037526306816',
-                'tag-marblehebrons': '467488709210669056',
-                'tag-catmans': '495331994843086887',
-                'tag-iamgoon': '557619083093344276',
-                'tag-modoktors': '614158258881429535',
-                'tag-futurefight': '467488762440712202',
-                'tag-warframe': '467489166721024050',
-                'tag-divisionpc': '467489534855217183',
-                'tag-divisionps4': '542692921569443850',
-                'tag-divisionxbox': '542692317337878530',
-                'tag-battlefield': '467490101488779264',
-                'tag-poe': '467496993875558401',
-                'tag-idlechamps': '467498907790999582',
-                'tag-marvelheroes': '467506628019879956',
-                'tag-yakuza': '467520119141171203',
-                'tag-known_controller_user': '467510266859487255',
-                'tag-stupid-pomo': '471771027060555781',
-                'tag-birb-crew': '481846091864604677',
-                'tag-nba': '484882962391760917',
-                'tag-lizardman': '495371684669423628',
-                'tag-poo-crew': '507579793416519705',
-                'tag-cold-warriors': '514967660539281410',
-                'tag-anthemxbox': '529729084037791744',
-                'tag-foreniter': '529729439685148672',
-                'tag-anthempc': '529729684561199107',
-                'tag-apexxbox': '542568902794674187',
-                'tag-apexps4': '542568685760675841',
-                'tag-apexpc': '542568685760675841',
-                'tag-starbores': '570396728432394261',
-                'tag-riskofrain': '564998370549039125',
-                'tag-deeprockgalactic': '529830792826847252',
-                'tag-paladins': '529830967230070800',
-                'tag-stupid-people': '533715061676703754',
-                'tag-diablo': '537450754785542166',
-                'tag-auscrew': '538362569056976916',
-                'knicks-fan-so-sorry': '540659502836351007',
-                'tag-bookclub': '734545659838857297',
-                'tag-bocchi-gang': '586312458369630208',
-                'tag-healthcrew': '621332851429736449',
-                'tag-monsterhunter': '608370823245463622',
-                'tag-goose': '624357814361653279',
-                'tag-borderlands': '622597242741587985',
-                'tag-halo': '646212951807885313',
-                'tag-magicthegathering': '653325014648487976',
-                'tag-katz-korner': '655819169597620242',
-                'tag-social-distance': '689902694059737183',
-                'tag-titanfalling': '702722337593884752',
-                'tag-bigfootgang': '702722340496343050',
-                'tag-boredgamers': '702722341922406481',
-                'tag-hydro-homies': '727957806233157734',
-                'tag-ffa-fga-friendship-alliance': '727958021325717516',
-                'tag-cryptidcrew': '742556404984053942',
-                'tag-cultofthebfo': '742556543547080815',
-                'tag-avengers': '750399781062574091',
-                'tag-bean-and-leaf-water-crew': '742917705165832203',
-                'pinners': '745136611179888755',
-                'tag-amongus': '757776773491458098',
-                'tag-sw-squadrons': '760035901052157973',
-                'talenti squad': '762463981846790174',
-                'tag-vermintide-rat-smashers': '786705363101679616',
-                'tag-koahi-photo-fanclub': '800452213310750751',
-                'tag-noodlegang': '804586156578308107',
-                'tag-bloonpoppinmonke': '804930657863467058',
-                'tag-gundamsquad': '805544985021644830',
-                'tag-fightinggames': '825428579134603264',
-                'tag-outriders': '826970947621093405',
-                'tag-scavengers': '838465645188087838',
-                'tag-edf-edf-shoot-bog': '841120733689020437',
-                'tag-lostark': '841444462592524358',
-                'tag-party-bus': '850533652098187264',
-                'tag-gunfirebuds': '861710163344621568',
-                'tag-tower-defense-games-ftw': '862411284363608095',
-                'tag-quiltbagqrew': '870883582699245608',
-                'tag-united-pokeman-and-women': '871088753056313364',
-                'tag-splitgaters': '874537492374757446',
-                'tag-aliens-ft-shoot-bog': '878388352687157299',
-                'tag-back-4-blood-buds': '897584143909662730',
-                'tag-wheel-of-time-skirtsmoothers': '905404882893279232',
-                'tag-huntys': '907003955777785906',
-                'tag-froggo-crew': '909102837835923507',
-                'tag-warhammer-waaaghs-n-skinks': '909136532256985148',
-                'boober': '916328104862048256',
-                'tag-call-of-fishyat': '923376976742461451',
-                'tag-capybara-crew': '927190264316035083',
-                'tag-rainbow6-extract': '934226133694685214',
-                'tag-elden-deez-rings': '945408628700110908',
-                'tag-squad-up': '967945914616533002'
+                'tag-goblin': 934217787038130256,
+                'tag-racon': 471770802727944192,
+                'lakers fan ': 467510519704846337,
+                'noted anime lover': 467511307382554629,
+                'tag-nfl': 391384162415673395,
+                'tag-ffr': 616304706880274452,
+                'tag-callofduty': 467487877039652875,
+                'tag-warzone': 687365517996326913,
+                'tag-destiny': 467488037526306816,
+                'tag-marblehebrons': 467488709210669056,
+                'tag-catmans': 495331994843086887,
+                'tag-iamgoon': 557619083093344276,
+                'tag-modoktors': 614158258881429535,
+                'tag-futurefight': 467488762440712202,
+                'tag-warframe': 467489166721024050,
+                'tag-divisionpc': 467489534855217183,
+                'tag-divisionps4': 542692921569443850,
+                'tag-divisionxbox': 542692317337878530,
+                'tag-battlefield': 467490101488779264,
+                'tag-poe': 467496993875558401,
+                'tag-idlechamps': 467498907790999582,
+                'tag-marvelheroes': 467506628019879956,
+                'tag-yakuza': 467520119141171203,
+                'tag-known_controller_user': 467510266859487255,
+                'tag-stupid-pomo': 471771027060555781,
+                'tag-birb-crew': 481846091864604677,
+                'tag-nba': 484882962391760917,
+                'tag-lizardman': 495371684669423628,
+                'tag-poo-crew': 507579793416519705,
+                'tag-cold-warriors': 514967660539281410,
+                'tag-anthemxbox': 529729084037791744,
+                'tag-foreniter': 529729439685148672,
+                'tag-anthempc': 529729684561199107,
+                'tag-apexxbox': 542568902794674187,
+                'tag-apexps4': 542568685760675841,
+                'tag-apexpc': 542568685760675841,
+                'tag-starbores': 570396728432394261,
+                'tag-riskofrain': 564998370549039125,
+                'tag-deeprockgalactic': 529830792826847252,
+                'tag-paladins': 529830967230070800,
+                'tag-stupid-people': 533715061676703754,
+                'tag-diablo': 537450754785542166,
+                'tag-auscrew': 538362569056976916,
+                'knicks-fan-so-sorry': 540659502836351007,
+                'tag-bookclub': 734545659838857297,
+                'tag-bocchi-gang': 586312458369630208,
+                'tag-healthcrew': 621332851429736449,
+                'tag-monsterhunter': 608370823245463622,
+                'tag-goose': 624357814361653279,
+                'tag-borderlands': 622597242741587985,
+                'tag-halo': 646212951807885313,
+                'tag-magicthegathering': 653325014648487976,
+                'tag-katz-korner': 655819169597620242,
+                'tag-social-distance': 689902694059737183,
+                'tag-titanfalling': 702722337593884752,
+                'tag-bigfootgang': 702722340496343050,
+                'tag-boredgamers': 702722341922406481,
+                'tag-hydro-homies': 727957806233157734,
+                'tag-ffa-fga-friendship-alliance': 727958021325717516,
+                'tag-cryptidcrew': 742556404984053942,
+                'tag-cultofthebfo': 742556543547080815,
+                'tag-avengers': 750399781062574091,
+                'tag-bean-and-leaf-water-crew': 742917705165832203,
+                'pinners': 745136611179888755,
+                'tag-amongus': 757776773491458098,
+                'tag-sw-squadrons': 760035901052157973,
+                'talenti squad': 762463981846790174,
+                'tag-vermintide-rat-smashers': 786705363101679616,
+                'tag-koahi-photo-fanclub': 800452213310750751,
+                'tag-noodlegang': 804586156578308107,
+                'tag-bloonpoppinmonke': 804930657863467058,
+                'tag-gundamsquad': 805544985021644830,
+                'tag-fightinggames': 825428579134603264,
+                'tag-outriders': 826970947621093405,
+                'tag-scavengers': 838465645188087838,
+                'tag-edf-edf-shoot-bog': 841120733689020437,
+                'tag-lostark': 841444462592524358,
+                'tag-party-bus': 850533652098187264,
+                'tag-gunfirebuds': 861710163344621568,
+                'tag-tower-defense-games-ftw': 862411284363608095,
+                'tag-quiltbagqrew': 870883582699245608,
+                'tag-united-pokeman-and-women': 871088753056313364,
+                'tag-splitgaters': 874537492374757446,
+                'tag-aliens-ft-shoot-bog': 878388352687157299,
+                'tag-back-4-blood-buds': 897584143909662730,
+                'tag-wheel-of-time-skirtsmoothers': 905404882893279232,
+                'tag-huntys': 907003955777785906,
+                'tag-froggo-crew': 909102837835923507,
+                'tag-warhammer-waaaghs-n-skinks': 909136532256985148,
+                'boober': 916328104862048256,
+                'tag-call-of-fishyat': 923376976742461451,
+                'tag-capybara-crew': 927190264316035083,
+                'tag-rainbow6-extract': 934226133694685214,
+                'tag-elden-deez-rings': 945408628700110908,
+                'tag-squad-up': 967945914616533002
             }
             try:
                 role = roles[str(message.content).split(' ')[-1]]
@@ -300,11 +317,11 @@ Available commands:
             for r in message.author.roles:
                 roleList.append(r.id)
                 
-            roleObj = discord.Object(int(role))
-            if int(role) not in roleList:
+            roleObj = discord.Object(role)
+            if role not in roleList:
                 await message.author.add_roles(roleObj, reason='User request')
                 await message.channel.send('Role added.')
-            elif int(role) in roleList:
+            elif role in roleList:
                 await message.author.remove_roles(roleObj, reason='User request')
                 await message.channel.send('Role removed.')
                 
@@ -437,16 +454,16 @@ Available commands:
             for r in message.author.roles:
                 roleList.append(r.id)
                             
-            if int(role) not in roleList:
+            if role not in roleList:
                 inter = set(roleList) & set(roles.values())
                 for x in inter:
-                    roleObj = discord.Object(int(x))
+                    roleObj = discord.Object(x)
                     await message.author.remove_roles(roleObj, reason='User request')
-                roleObj = discord.Object(int(role)) 
+                roleObj = discord.Object(role) 
                 await message.author.add_roles(roleObj, reason='User request')
                 await message.channel.send('Color added.')
-            elif int(role) in roleList:
-                roleObj = discord.Object(int(role)) 
+            elif role in roleList:
+                roleObj = discord.Object(role) 
                 await message.author.remove_roles(roleObj, reason='User request')
                 await message.channel.send('Color removed.')
 
