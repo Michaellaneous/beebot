@@ -2,3 +2,4 @@ validators==0.18.2
 discord.py==1.7.3
 praw==7.5.0
 requests==2.23.0
+tinydb==4.7.0

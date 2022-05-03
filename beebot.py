@@ -10,6 +10,7 @@ import PIL
 import os
 import random
 import collections
+#import tinydb
 
 class BeeClient(discord.Client):
     async def on_ready(self):
@@ -65,6 +66,7 @@ class BeeClient(discord.Client):
                 os.remove(f'{imgName}.png')
                 
         if message.content.startswith('!racon'):
+            await message.channel.send('Buzzing for a good image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
                 client_secret=redditSecret,
@@ -81,6 +83,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content.startswith('!frog'):
+            await message.channel.send('Buzzing for a good image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
                 client_secret=redditSecret,
@@ -97,6 +100,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content.startswith('!capybara'):
+            await message.channel.send('Buzzing for a good image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
                 client_secret=redditSecret,
@@ -113,6 +117,7 @@ class BeeClient(discord.Client):
                     return
 
         if message.content.startswith('!bee'):
+            await message.channel.send('Buzzing for a good image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
                 client_secret=redditSecret,
@@ -133,13 +138,14 @@ class BeeClient(discord.Client):
             # await user.send('<3')
         
         if message.content.startswith('!bonk'):
-            await message.delete()
             await message.channel.send('https://tenor.com/view/bonk-gif-24239187')
             
         if message.content.startswith('!lies'):
-            await message.delete()
             await message.channel.send('https://i.imgur.com/a5p3P1r.jpg')
-            
+        
+        if message.content.startswith('!punchy'):
+            await message.channel.send('https://rlv.zcache.com/happy_face_smiling_tomato_cutout-read27a2db5524c62b0708aeb7ccda5d0_x7saw_8byvr_540.webp')
+
         if message.content.startswith('!talk'):
             seedWord = random.choice(wordList)
             sentenceLength = random.randint(7, 25)
@@ -151,14 +157,13 @@ class BeeClient(discord.Client):
 
                 sentence += " " + seedWord
             
-            await message.delete()
             await message.channel.send(sentence)
             
         if message.content.startswith('!nickme'):
             seedWord = random.choice(wordList)
             nickLength = random.randint(1, 2)
 
-            newNick = seedWord.capitalize()
+            newNick = seedWord
             for i in range(0, nickLength):
                 nextWord = random.choice(markovTable[seedWord])
                 seedWord = nextWord
@@ -170,7 +175,22 @@ class BeeClient(discord.Client):
             await message.author.edit(nick=newNick[:31])
             await message.channel.send(f'Nickname set to {newNick[:31]}')
             return
+        
+        if message.content.startswith('!help'):
+            msg = """```beebot Version 0.0.1bee
             
+Available commands:
+!help - Display this message.
+!nickme - Give yourself a random nickname.
+!hugemoji :emoji: / !hugemoji :emoji: aa - A massive version of the emoji of your choice. aa might make some emojis look better when enlargened.
+!talk - Spout nonsense, inspired by goons.
+!tag <tag> - Tag yourself for one of our many games.
+!color <color> - Give yourself a fancy new look.
+!racon, !capybara, !bee, !frog - For all your animal needs.```
+            """
+            
+            await message.channel.send(msg)
+        
         if message.content.startswith('!tag'):
             roles = {
                 'tag-goblin': '934217787038130256',
@@ -290,120 +310,120 @@ class BeeClient(discord.Client):
                 
         if message.content.startswith('!color'):
             roles = {
-                'color-blue': '331674383661793282',
-                'color-blizzardblue': '545442621045080094',
-                'color-trueblue': '333778109889249280',
-                'color-aqua': '333778961513316352',
-                'color-basicblues': '545663086728577045',
-                'color-periwinkle': '334513307375501314',
-                'color-cosmicblue': '586613522138398721',
-                'color-aquamarine': '391383743903956993',
-                'color-steelblue': '391377414971719680',
-                'color-blublue': '391377620656455680',
-                'color-cyan': '391383484825862154',
-                'color-freshwater': '545659893248688132',
-                'color-cadetblue': '391377206699622413',
-                'color-newblueorder': '387747381631909891',
-                'color-agentblue': '550862673815011338',
-                'color-indigo': '356180724505903104',
-                'color-sky': '356180388646879245',
-                'color-thunderblue': '582982025955508243',
-                'color-deepblue': '331679561429417985',
-                'color-twoblueorder': '387747500796411921',
-                'color-majestic': '356180220790833163',
-                'color-divcosmetic': '550862436408885279',
-                'color-bfblue': '852268932521918504',
-                'color-green': '331674334026268672',
-                'color-green2016': '331683074972844054',
-                'color-lush': '545662701825687592',
-                'color-seafoamgreen': '331677622386032640',
-                'color-lightfoam': '387744910830469130',
-                'color-cosmicgreen': '391380602672381953',
-                'color-brightfoam': '387745003075796992',
-                'color-greygreen': '387748043186765824',
-                'color-meangreen': '356183712163168256',
-                'color-classified': '550860510887673856',
-                'color-brolygreen': '535921803353128980',
-                'color-palegreen': '495370092784123914',
-                'color-truegreen': '331683649936293909',
-                'color-avocado': '356178414299774981',
-                'color-greenmarine': '387746451276693504',
-                'color-pea': '356179190866771968',
-                'color-greenworld': '387746246275629056',
-                'color-forest': '356179616328581121',
-                'color-diaperdandy': '387745595064057857',
-                'color-darkgreen': '543177191609991198',
-                'color-agentcommon': '550863098852933659',
-                'color-yellowgreen': '391383298460614656',
-                'color-toxicgrass': '391382908444868608',
-                'color-newgreenorder': '391378472251162624',
-                'color-yellow': '331672807165657089',
-                'color-yellowtown': '582984464741695490',
-                'color-cosmictoday': '333777730896396308',
-                'color-paleyellowdot': '586612913968775170',
-                'color-melloyellow': '387747050554654731',
-                'color-classyyellow': '387749759462408205',
-                'color-goldmember': '387747648699891712',
-                'color-yellowdrop': '550861729098104833',
-                'color-gold': '391387838228463636',
-                'color-unique': '538110724304797696',
-                'color-purple': '331674854015107072',
-                'color-cosmicpurpz': '586613935109832715',
-                'color-darkpurple': '331684169602301952',
-                'color-divpurp': '550861420963561472',
-                'color-brightpurple': '334517963141152770',
-                'color-californiaraisen': '356180745108193290',
-                'color-purpledrank': '356180492090867714',
-                'color-electricpurp': '549293875097894942',
-                'color-newpurpleorder': '387746642855591937',
-                'color-partypurple': '331684686512521217',
-                'color-purplemonkey': '549292003058253834',
-                'color-palepurpledot': '586605480831614976',
-                'color-plum': '387747823875129365',
-                'color-bruised': '387748194945073153',
-                'color-orange': '331674460442591242',
-                'color-crafted': '542820534401105934',
-                'color-agentorange': '549290950724288513',
-                'color-orangeskies': '545664036562534437',
-                'color-beachplease': '356182635548246017',
-                'color-neworangeorder': '387745813390032898',
-                'color-sunset': '582982986543136769',
-                'color-jackedandtan': '356183347808174100',
-                'color-red': '333351732744683532',
-                'color-redlife': '550857316413734914',
-                'color-sensualred': '501918273642823690',
-                'color-raptorred': '582983773340172331',
-                'color-chameleonred': '549204164266426368',
-                'color-socialistred': '538114496313688094',
-                'color-lightred': '331674922005037066',
-                'color-burntsienna': '356182060336939020',
-                'color-roseyred': '387747160260608002',
-                'color-fuschia': '391379658245144586',
-                'color-brown': '331676629246148619',
-                'color-burgerbrown': '550852122942504963',
-                'color-poobrown': '331678261270544385',
-                'color-deepbrown': '331680549674418178',
-                'color-copper': '549294384479207437',
-                'color-bronze': '582984928405225494',
-                'color-puke': '387745467812806657',
-                'color-murple': '393474064276127754',
-                'color-pink': '331674615988486144',
-                'color-magenta': '585197768403058701',
-                'color-salmon': '334505192651358220',
-                'color-typicalpink': '356181548808142855',
-                'color-pinkpanther': '549293137726799892',
-                'color-prettyinpink': '387744491257462786',
-                'color-pinky': '387748332027772929',
-                'color-rose': '586611952755802112',
-                'color-evilpink': '545665113475252224',
-                'color-pinkdivinity': '391385840171089920',
-                'color-peach': '391378104158912514',
-                'color-black': '333351978006740992',
-                'color-evilgrey': '331678738242863104',
-                'color-goodgrey': '331678924469829632',
-                'color-silver': '582984625844912251',
-                'color-mayopete': '333777591938842635',
-                'color-serenity': '391380608732889108'
+                'color-blue': 331674383661793282,
+                'color-blizzardblue': 545442621045080094,
+                'color-trueblue': 333778109889249280,
+                'color-aqua': 333778961513316352,
+                'color-basicblues': 545663086728577045,
+                'color-periwinkle': 334513307375501314,
+                'color-cosmicblue': 586613522138398721,
+                'color-aquamarine': 391383743903956993,
+                'color-steelblue': 391377414971719680,
+                'color-blublue': 391377620656455680,
+                'color-cyan': 391383484825862154,
+                'color-freshwater': 545659893248688132,
+                'color-cadetblue': 391377206699622413,
+                'color-newblueorder': 387747381631909891,
+                'color-agentblue': 550862673815011338,
+                'color-indigo': 356180724505903104,
+                'color-sky': 356180388646879245,
+                'color-thunderblue': 582982025955508243,
+                'color-deepblue': 331679561429417985,
+                'color-twoblueorder': 387747500796411921,
+                'color-majestic': 356180220790833163,
+                'color-divcosmetic': 550862436408885279,
+                'color-bfblue': 852268932521918504,
+                'color-green': 331674334026268672,
+                'color-green2016': 331683074972844054,
+                'color-lush': 545662701825687592,
+                'color-seafoamgreen': 331677622386032640,
+                'color-lightfoam': 387744910830469130,
+                'color-cosmicgreen': 391380602672381953,
+                'color-brightfoam': 387745003075796992,
+                'color-greygreen': 387748043186765824,
+                'color-meangreen': 356183712163168256,
+                'color-classified': 550860510887673856,
+                'color-brolygreen': 535921803353128980,
+                'color-palegreen': 495370092784123914,
+                'color-truegreen': 331683649936293909,
+                'color-avocado': 356178414299774981,
+                'color-greenmarine': 387746451276693504,
+                'color-pea': 356179190866771968,
+                'color-greenworld': 387746246275629056,
+                'color-forest': 356179616328581121,
+                'color-diaperdandy': 387745595064057857,
+                'color-darkgreen': 543177191609991198,
+                'color-agentcommon': 550863098852933659,
+                'color-yellowgreen': 391383298460614656,
+                'color-toxicgrass': 391382908444868608,
+                'color-newgreenorder': 391378472251162624,
+                'color-yellow': 331672807165657089,
+                'color-yellowtown': 582984464741695490,
+                'color-cosmictoday': 333777730896396308,
+                'color-paleyellowdot': 586612913968775170,
+                'color-melloyellow': 387747050554654731,
+                'color-classyyellow': 387749759462408205,
+                'color-goldmember': 387747648699891712,
+                'color-yellowdrop': 550861729098104833,
+                'color-gold': 391387838228463636,
+                'color-unique': 538110724304797696,
+                'color-purple': 331674854015107072,
+                'color-cosmicpurpz': 586613935109832715,
+                'color-darkpurple': 331684169602301952,
+                'color-divpurp': 550861420963561472,
+                'color-brightpurple': 334517963141152770,
+                'color-californiaraisen': 356180745108193290,
+                'color-purpledrank': 356180492090867714,
+                'color-electricpurp': 549293875097894942,
+                'color-newpurpleorder': 387746642855591937,
+                'color-partypurple': 331684686512521217,
+                'color-purplemonkey': 549292003058253834,
+                'color-palepurpledot': 586605480831614976,
+                'color-plum': 387747823875129365,
+                'color-bruised': 387748194945073153,
+                'color-orange': 331674460442591242,
+                'color-crafted': 542820534401105934,
+                'color-agentorange': 549290950724288513,
+                'color-orangeskies': 545664036562534437,
+                'color-beachplease': 356182635548246017,
+                'color-neworangeorder': 387745813390032898,
+                'color-sunset': 582982986543136769,
+                'color-jackedandtan': 356183347808174100,
+                'color-red': 333351732744683532,
+                'color-redlife': 550857316413734914,
+                'color-sensualred': 501918273642823690,
+                'color-raptorred': 582983773340172331,
+                'color-chameleonred': 549204164266426368,
+                'color-socialistred': 538114496313688094,
+                'color-lightred': 331674922005037066,
+                'color-burntsienna': 356182060336939020,
+                'color-roseyred': 387747160260608002,
+                'color-fuschia': 391379658245144586,
+                'color-brown': 331676629246148619,
+                'color-burgerbrown': 550852122942504963,
+                'color-poobrown': 331678261270544385,
+                'color-deepbrown': 331680549674418178,
+                'color-copper': 549294384479207437,
+                'color-bronze': 582984928405225494,
+                'color-puke': 387745467812806657,
+                'color-murple': 393474064276127754,
+                'color-pink': 331674615988486144,
+                'color-magenta': 585197768403058701,
+                'color-salmon': 334505192651358220,
+                'color-typicalpink': 356181548808142855,
+                'color-pinkpanther': 549293137726799892,
+                'color-prettyinpink': 387744491257462786,
+                'color-pinky': 387748332027772929,
+                'color-rose': 586611952755802112,
+                'color-evilpink': 545665113475252224,
+                'color-pinkdivinity': 391385840171089920,
+                'color-peach': 391378104158912514,
+                'color-black': 333351978006740992,
+                'color-evilgrey': 331678738242863104,
+                'color-goodgrey': 331678924469829632,
+                'color-silver': 582984625844912251,
+                'color-mayopete': 333777591938842635,
+                'color-serenity': 391380608732889108
             }
             
             try:
@@ -416,12 +436,17 @@ class BeeClient(discord.Client):
             
             for r in message.author.roles:
                 roleList.append(r.id)
-                
-            roleObj = discord.Object(int(role))
+                            
             if int(role) not in roleList:
+                inter = set(roleList) & set(roles.values())
+                for x in inter:
+                    roleObj = discord.Object(int(x))
+                    await message.author.remove_roles(roleObj, reason='User request')
+                roleObj = discord.Object(int(role)) 
                 await message.author.add_roles(roleObj, reason='User request')
                 await message.channel.send('Color added.')
             elif int(role) in roleList:
+                roleObj = discord.Object(int(role)) 
                 await message.author.remove_roles(roleObj, reason='User request')
                 await message.channel.send('Color removed.')
 
@@ -452,6 +477,7 @@ def createMarkov(normalized_text):
 
 markovTable = createMarkov(text)
 wordList = list(markovTable.keys())
+nicknameList = {}
 
 with open('token') as f:
     token = f.read()
