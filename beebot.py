@@ -8,9 +8,10 @@ import os
 import random
 import collections
 import asyncio
+import sqlite3
+import datetime
 from PIL import Image
 from io import BytesIO
-import sqlite3
 
 class BeeClient(discord.Client):
     async def on_ready(self):
@@ -20,9 +21,11 @@ class BeeClient(discord.Client):
         print('------')
         
         # channel = await client.fetch_channel('330158485704802305')
+        
+        #afterDate = datetime.datetime(2022, 05, 02, hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.tzinfo().tzname('UTC'))
 
         # with open('markov.txt' , "w+", encoding="utf-8") as output_file:
-        #     async for message in channel.history(limit=100000):
+        #     async for message in channel.history(after=afterDate, limit=100000):
         #         output = message.content + "\n"
         #         output_file.write(output)
         
@@ -162,21 +165,41 @@ class BeeClient(discord.Client):
                     await message.channel.send(submission.url)
                     await reddit.close()
                     return
-                
-        # if message.content.startswith('!lux'):
-            # user = await client.fetch_user('298254692444667904')
-            # await user.send('<3')
+      
+        if message.content.startswith('!lux'):
+            await message.channel.send('https://media.discordapp.net/attachments/330158485704802305/700784533024276561/shiv.PNG')
+            return
         
         if message.content.startswith('!bonk'):
             await message.channel.send('https://tenor.com/view/bonk-gif-24239187')
+            return
             
         if message.content.startswith('!lies'):
             await message.channel.send('https://i.imgur.com/a5p3P1r.jpg')
+            return
         
         if message.content.startswith('!punchy'):
             await message.channel.send('https://rlv.zcache.com/happy_face_smiling_tomato_cutout-read27a2db5524c62b0708aeb7ccda5d0_x7saw_8byvr_540.webp')
-
-        if message.content.startswith('!talk') or message.content.startswith('!speak'):
+            return
+        
+        if message.content.startswith('!hammerstein'):
+            await message.channel.send('Buzzing for a bad image...')
+            reddit = asyncpraw.Reddit(
+                client_id=redditID,
+                client_secret=redditSecret,
+                user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
+            )
+            
+            subreddit = await reddit.subreddit('pizzacrimes')
+            while True:            
+                submission = await subreddit.random()
+                image_formats = ('png', 'jpg', 'jpeg', 'gif')
+                if str(submission.url).split('.')[-1] in image_formats:
+                    await message.channel.send(submission.url)
+                    await reddit.close()
+                    return
+        
+        if message.content.startswith('!talk') or message.content.startswith('!speak') or message.content.startswith('!tay'):
             seedWord = random.choice(wordList)
             sentenceLength = random.randint(7, 25)
 
@@ -188,6 +211,7 @@ class BeeClient(discord.Client):
                 sentence += " " + seedWord
             
             await message.channel.send(sentence)
+            return
             
         if message.content.startswith('!nickme'):
             seedWord = random.choice(wordList)
@@ -233,13 +257,16 @@ class BeeClient(discord.Client):
                     toSend += f'\n{row[0]}. {row[1]}'
                 toSend += '```'
                 await message.channel.send(toSend)
+                return
             elif int(option) > rowCount:
                 await message.channel.send("I don't have that many nicknames on offer.")
+                return
             else:
                 for row in cur.execute(f'SELECT nick FROM nicknames WHERE ROWID = {option}'):
                     newNick = f'{row[0]} | {message.author.name}'
                 await message.author.edit(nick=newNick[:31])
-                await message.channel.send(f'Nickname set to {newNick[:31]}')                
+                await message.channel.send(f'Nickname set to {newNick[:31]}')           
+                return
         
         if message.content.startswith('!help'):
             msg = """```beebot Version 0.0.1bee
@@ -250,13 +277,14 @@ Available commands:
 !nickname - Generate a list of nicknames you can pick from.
 !nickname <number> - Pick one of them.
 !hugemoji :emoji: / !hugemoji :emoji: aa - A massive version of the emoji of your choice. aa might make some emojis look better when enlargened. [aliases: !hm]
-!talk - Spout nonsense, inspired by goons. [aliases: !speak]
+!talk / !speak / !tay - Spout nonsense, inspired by goons. [aliases: !speak]
 !tag <tag> - Tag yourself for one of our many games.
 !color <color> - Give yourself a fancy new look.
 !racon, !capybara, !bee, !frog, !bird - For all your animal needs.```
 """
             
             await message.channel.send(msg)
+            return
         
         if message.content.startswith('!tag'):
             roles = {
@@ -546,10 +574,8 @@ markovTable = createMarkov(text)
 wordList = list(markovTable.keys())
 nicknameList = {}
 
-con = sqlite3.connect(':memory:')
+con = sqlite3.connect('beebot.db')
 cur = con.cursor()
-cur.execute('CREATE TABLE nicknames (nick text)')
-con.commit()
 
 with open('token') as f:
     token = f.read()
