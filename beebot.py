@@ -30,24 +30,36 @@ class BeeClient(discord.Client):
         #         output_file.write(output)
         
         while True:
-            await asyncio.sleep(random.randint(1800, 3600)) # This is the sleep method.
-            seedWord = random.choice(wordList)
-            sentenceLength = random.randint(7, 25)
+            await asyncio.sleep(random.randint(3600, 7200))
+            chance = random.randint(1, 3)
+            if chance == 1:
+                seedWord = random.choice(wordList)
+                sentenceLength = random.randint(7, 25)
 
-            sentence = seedWord.capitalize()
-            for i in range(0, sentenceLength):
-                nextWord = random.choice(markovTable[seedWord])
-                seedWord = nextWord
+                sentence = seedWord.capitalize()
+                for i in range(0, sentenceLength):
+                    nextWord = random.choice(markovTable[seedWord])
+                    seedWord = nextWord
 
-                sentence += " " + seedWord
-            
-            channel = await client.fetch_channel('330158485704802305')
-            await channel.send(sentence)
+                    sentence += " " + seedWord
+                
+                channel = await client.fetch_channel('330158485704802305')
+                await channel.send(sentence)
+            elif chance == 2:
+                channel = await client.fetch_channel('330158485704802305')
+                await channel.send("Bzzzz...")
+            elif chance == 3:
+                channel = await client.fetch_channel('330158485704802305')
+                await channel.send("*lays down a smooth saxophone solo*")     
             
     
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
+        
+        chance = random.randint(1, 9999999)
+        if chance == 255:
+            await message.channel.send('https://i.imgur.com/5NxrG0r.jpg')
 
         if message.content.startswith('!hugemoji') or message.content.startswith('!hm'):
             try:
@@ -165,9 +177,46 @@ class BeeClient(discord.Client):
                     await message.channel.send(submission.url)
                     await reddit.close()
                     return
+                
+        if message.content.startswith('!dog'):
+            await message.channel.send('Buzzing for a good image...')
+            reddit = asyncpraw.Reddit(
+                client_id=redditID,
+                client_secret=redditSecret,
+                user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
+            )
+            
+            subreddit = await reddit.subreddit('dogpictures')
+            while True:            
+                submission = await subreddit.random()
+                image_formats = ('png', 'jpg', 'jpeg', 'gif')
+                if str(submission.url).split('.')[-1] in image_formats:
+                    await message.channel.send(submission.url)
+                    await reddit.close()
+                    return
+                
+        if message.content.startswith('!cat'):
+            await message.channel.send('Buzzing for a good image...')
+            reddit = asyncpraw.Reddit(
+                client_id=redditID,
+                client_secret=redditSecret,
+                user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
+            )
+            
+            subreddit = await reddit.subreddit('catpictures')
+            while True:            
+                submission = await subreddit.random()
+                image_formats = ('png', 'jpg', 'jpeg', 'gif')
+                if str(submission.url).split('.')[-1] in image_formats:
+                    await message.channel.send(submission.url)
+                    await reddit.close()
+                    return
       
         if message.content.startswith('!lux'):
-            await message.channel.send('https://media.discordapp.net/attachments/330158485704802305/700784533024276561/shiv.PNG')
+            luxImages = ('https://media.discordapp.net/attachments/330158485704802305/700784533024276561/shiv.PNG',
+                         'https://cdn.discordapp.com/attachments/330158485704802305/971040904062332968/mangle.PNG',
+                         'https://cdn.discordapp.com/attachments/330158485704802305/971040904561438800/choke.png')
+            await message.channel.send(random.choice(luxImages))
             return
         
         if message.content.startswith('!bonk'):
@@ -180,6 +229,13 @@ class BeeClient(discord.Client):
         
         if message.content.startswith('!punchy'):
             await message.channel.send('https://rlv.zcache.com/happy_face_smiling_tomato_cutout-read27a2db5524c62b0708aeb7ccda5d0_x7saw_8byvr_540.webp')
+            return
+        
+        if message.content.startswith('!boober'):
+            booberImages = ('https://cdn.discordapp.com/attachments/330158485704802305/971049950546898964/boobergrab.png',
+                            'https://cdn.discordapp.com/attachments/330158485704802305/971050030507106364/boobergold.png',
+                            'https://cdn.discordapp.com/attachments/330158485704802305/971050375266304040/boobersaiyan.png')
+            await message.channel.send(random.choice(booberImages))
             return
         
         if message.content.startswith('!hammerstein'):
