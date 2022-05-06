@@ -169,7 +169,7 @@ class BeeClient(discord.Client):
                 user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
             )
             
-            subreddit = await reddit.subreddit('birdpics')
+            subreddit = await reddit.subreddit('birbs')
             while True:            
                 submission = await subreddit.random()
                 image_formats = ('png', 'jpg', 'jpeg', 'gif')
@@ -254,6 +254,14 @@ class BeeClient(discord.Client):
                     await message.channel.send(submission.url)
                     await reddit.close()
                     return
+                
+        if message.content.startswith('!porn'):
+            await message.channel.send('https://i.imgur.com/UzFfd3v.png')
+            return
+
+        if message.content.startswith('!rockbear') or message.content.startswith('!rb'):
+            await message.channel.send('https://c1.scryfall.com/file/scryfall-cards/large/front/d/8/d8855d65-98fc-4b5f-bd68-95d2fda6345f.jpg?1651630462')
+            return
         
         if message.content.startswith('!talk') or message.content.startswith('!speak') or message.content.startswith('!tay'):
             seedWord = random.choice(wordList)
@@ -333,7 +341,7 @@ Available commands:
 !nickname - Generate a list of nicknames you can pick from.
 !nickname <number> - Pick one of them.
 !hugemoji :emoji: / !hugemoji :emoji: aa - A massive version of the emoji of your choice. aa might make some emojis look better when enlargened. [aliases: !hm]
-!talk / !speak / !tay - Spout nonsense, inspired by goons. [aliases: !speak]
+!talk - Spout nonsense, inspired by goons. [aliases: !speak, !tay]
 !tag <tag> - Tag yourself for one of our many games.
 !color <color> - Give yourself a fancy new look.
 !racon, !capybara, !bee, !frog, !bird - For all your animal needs.```
