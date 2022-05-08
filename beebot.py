@@ -52,7 +52,16 @@ class BeeClient(discord.Client):
                 channel = await client.fetch_channel('330158485704802305')
                 await channel.send("*lays down a smooth saxophone solo*")     
             
-    
+    async def on_reaction_add(self, reaction, user):
+        roleList = []
+        modID = 383445089806188545
+        
+        for r in reaction.message.author.roles:
+            roleList.append(r.id)
+            
+        if modID in roleList and str(reaction) == '🗑️' and reaction.message.author.id == 948158071279083531:
+            await reaction.message.delete()
+
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
@@ -161,6 +170,24 @@ class BeeClient(discord.Client):
                     await reddit.close()
                     return
                 
+        if message.content.startswith('!pomo'):
+            await message.channel.send('Buzzing for a good image...')
+            reddit = asyncpraw.Reddit(
+                client_id=redditID,
+                client_secret=redditSecret,
+                user_agent="android:com.beebot:v0.0.1 (by u/michaellaneous)",
+            )
+            
+            subreddit = await reddit.subreddit('pomeranians')
+            while True:            
+                submission = await subreddit.random()
+                image_formats = ('png', 'jpg', 'jpeg', 'gif')
+                if str(submission.url).split('.')[-1] in image_formats:
+                    await message.channel.send(submission.url)
+                    await reddit.close()
+                    return
+                
+
         if message.content.startswith('!bird'):
             await message.channel.send('Buzzing for a good image...')
             reddit = asyncpraw.Reddit(
@@ -212,10 +239,57 @@ class BeeClient(discord.Client):
                     await reddit.close()
                     return
       
+        if message.content.startswith('!goblin'):
+            await message.channel.send('https://cdn.discordapp.com/attachments/423525684799995904/950506265581338624/feet2.mp4')
+            return
+
+
+        # YOU CHEATED NOT ONLY THE GAME, BUT YOURSELF. YOU DIDN'T GROW, YOU DIDN'T IMPROVE.
+        # YOU TOOK A SHORTCUT, AND GAINED NOTHING. YOU EXPERIENCED A HOLLOW VICTORY.
+        # NOTHING WAS RISKED, AND NOTHING WAS GAINED.
+        # IT IS SAD THAT YOU DO NOT KNOW THE DIFFERENCE.
+        if message.content.startswith('!Iux'):
+            await message.channel.send('https://www.youtube.com/shorts/SaXj3Z_tao8')
+            return
+        
         if message.content.startswith('!lux'):
-            luxImages = ('https://media.discordapp.net/attachments/330158485704802305/700784533024276561/shiv.PNG',
-                         'https://cdn.discordapp.com/attachments/330158485704802305/971040904062332968/mangle.PNG',
-                         'https://cdn.discordapp.com/attachments/330158485704802305/971040904561438800/choke.png')
+            chance = random.randint(1, 10000)
+            if chance == 255:
+                await message.channel.send('https://i.imgur.com/tLjNhGl.png')
+                return
+
+            luxImages = ('https://i.imgur.com/gpz4gu6.png',
+                         'https://i.imgur.com/pt34yJB.png',
+                         'https://i.imgur.com/9aHMEdy.png',
+                         'https://i.imgur.com/oBdRWWf.png',
+                         'https://i.imgur.com/gWMLTRr.png',
+                         'https://i.imgur.com/HbGm9e8.png',
+                         'https://i.imgur.com/eajc20F.png',
+                         'https://i.imgur.com/Fx3lge3.png',
+                         'https://i.imgur.com/l15o54u.png',
+                         'https://i.imgur.com/maRR8Du.png',
+                         'https://i.imgur.com/bBWue2J.png',
+                         'https://i.imgur.com/XipBsTW.png',
+                         'https://i.imgur.com/iUzx8Ic.png',
+                         'https://i.imgur.com/hwTavot.png',
+                         'https://i.imgur.com/FEjjZyv.png',
+                         'https://i.imgur.com/0aPrwrr.png',
+                         'https://i.imgur.com/DxpJ6DL.png',
+                         'https://i.imgur.com/Z0ohaU5.png',
+                         'https://i.imgur.com/JpuDZdl.png',
+                         'https://i.imgur.com/okTa4vv.png',
+                         'https://i.imgur.com/uC3eAfM.png',
+                         'https://i.imgur.com/NY3rhJy.png',
+                         'https://i.imgur.com/YGG2WQg.png',
+                         'https://i.imgur.com/8zBalFx.png',
+                         'https://i.imgur.com/rXNXXg1.png',
+                         'https://i.imgur.com/w9dz2aH.png',
+                         'https://i.imgur.com/Tdj4e8j.png',
+                         'https://i.imgur.com/hYP4trT.png',
+                         'https://i.imgur.com/CAEGblO.png',
+                         'https://i.imgur.com/KIO17gK.png',
+                         'https://i.imgur.com/YEL9QRx.png')
+                         
             await message.channel.send(random.choice(luxImages))
             return
         
@@ -344,7 +418,7 @@ Available commands:
 !talk - Spout nonsense, inspired by goons. [aliases: !speak, !tay]
 !tag <tag> - Tag yourself for one of our many games.
 !color <color> - Give yourself a fancy new look.
-!racon, !capybara, !bee, !frog, !bird - For all your animal needs.```
+!racon, !capybara, !bee, !frog, !bird, !pomo - For all your animal needs.```
 """
             
             await message.channel.send(msg)
