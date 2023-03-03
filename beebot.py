@@ -9,12 +9,24 @@ import random
 import collections
 import asyncio
 import sqlite3
-import datetime
+from datetime import datetime, timedelta
 from PIL import Image
 from io import BytesIO
 import re
+from prometheus_client import start_http_server, Counter, Histogram, Gauge, Summary
+import openai
+import replicate
 
 class BeeClient(discord.Client):
+    
+    promSummary = Summary('summaryCommands', 'Commands exectued', ['command'])
+    promNickGauge = Gauge('gaugeNicknames', 'Amount of nicknames in the database as Gauge')
+    defaultPersonality = 'The following is a conversation with a discord AI chatbot. The chatbot is generally friendly and is themed around bees.'
+    personality = 'The following is a conversation with a discord AI chatbot. The chatbot is generally friendly and is themed around bees.'
+    nextChat = datetime.now()
+    with open('openaiToken') as f:
+        openai.api_key = f.read()
+    
     async def on_ready(self):
         print('Logged in as')
         print(self.user.name)
@@ -72,8 +84,45 @@ class BeeClient(discord.Client):
         chance = random.randint(1, 9999999)
         if chance == 255:
             await message.channel.send('https://i.imgur.com/5NxrG0r.jpg')
+            
+        if message.content.startswith('!personality'):
+            self.promSummary.labels('personality').observe(1)
+            self.personality = f'The following is a conversation with a discord AI chatbot. {str(message.content)[13:]}'
+            await message.channel.send('Personality for the next !chat command changed.')
+        
+        if message.content.startswith('!chat'):
+            print(datetime.now())
+            print(self.nextChat)
+            if datetime.now() < self.nextChat:
+                return
+            
+            self.promSummary.labels('chat').observe(1)
+            msg = str(message.content)[6:]
+            
+            try:
+                response = openai.Completion.create(
+                    model="text-davinci-003",
+                    prompt=f"{self.personality}\n\nHuman: {msg} AI:",
+                    temperature=0.9,
+                    max_tokens=150,
+                    top_p=1,
+                    frequency_penalty=0.0,
+                    presence_penalty=0.6,
+                    stop=[" Human:", " AI:"]
+                )
+            except openai.error.RateLimitError:
+                await message.channel.send('Monthly token limit reached. If you want to increase this, consider a small donation <3')
+                return
+            
+            returnText = response['choices'][0]['text'].strip() 
+            self.promSummary.labels('tokensUsed').observe(response['usage']['total_tokens'])
+            self.promSummary.labels('bonbyChat').observe(returnText.lower().count('bonby'))
+            await message.channel.send(returnText)
+            self.personality = self.defaultPersonality
+            self.nextChat = datetime.now() + timedelta(seconds=120)
 
         if message.content.startswith('!hugemoji') or message.content.startswith('!hm'):
+            self.promSummary.labels('hugemoji').observe(1)
             try:
                 sentEmoji = get_message_emojis(message)[0]
             except IndexError:
@@ -106,6 +155,7 @@ class BeeClient(discord.Client):
                 os.remove(f'{imgName}.png')
                 
         if message.content.startswith('!racon'):
+            self.promSummary.labels('racon').observe(1)
             await message.channel.send('Buzzing for a trashy image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -123,6 +173,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content.startswith('!frog'):
+            self.promSummary.labels('frog').observe(1)
             await message.channel.send('Buzzing for a ribbit...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -140,6 +191,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content.startswith('!capybara'):
+            self.promSummary.labels('capybara').observe(1)
             await message.channel.send('Buzzing for a chill image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -157,6 +209,7 @@ class BeeClient(discord.Client):
                     return
 
         if message.content == ('!bee'):
+            self.promSummary.labels('bee').observe(1)
             await message.channel.send('Buzzing for a friend...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -174,6 +227,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content == ('!burger'):
+            self.promSummary.labels('burger').observe(1)
             await message.channel.send('Buzzing for a burg...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -191,6 +245,7 @@ class BeeClient(discord.Client):
                     return
 
         if message.content.startswith('!pomo'):
+            self.promSummary.labels('pomo').observe(1)
             await message.channel.send('Buzzing for a small, good boy...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -209,6 +264,7 @@ class BeeClient(discord.Client):
                 
 
         if message.content.startswith('!bird'):
+            self.promSummary.labels('bird').observe(1)
             await message.channel.send('Buzzing for a loud birb...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -227,6 +283,7 @@ class BeeClient(discord.Client):
 
                 
         if message.content.startswith('!dog'):
+            self.promSummary.labels('dog').observe(1)
             await message.channel.send('Buzzing for a good boy...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -244,6 +301,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content == ('!cat'):
+            self.promSummary.labels('cat').observe(1)
             await message.channel.send('Buzzing for a sneaky feline...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -262,6 +320,7 @@ class BeeClient(discord.Client):
 
         
         if message.content.startswith('!hearsay'):
+            self.promSummary.labels('hearsay').observe(1)
             hearsayImages = ('https://i.imgur.com/i1PQNeH.gif',
                              'https://media.discordapp.net/attachments/492731531379605504/978334696024973392/9lsj7zyx.gif',
                              'https://cdn.discordapp.com/attachments/841397604536680509/979840713346928760/9BCF52E4-FF3D-404D-8B3C-E67A3DA288A8.gif',
@@ -275,6 +334,7 @@ class BeeClient(discord.Client):
             return
         
         if message.content.startswith('!lux'):
+            self.promSummary.labels('lux').observe(1)
             chance = random.randint(100000, 200000)
             if chance == 122124:
                 await message.channel.send('https://i.imgur.com/tLjNhGl.png')
@@ -316,6 +376,7 @@ class BeeClient(discord.Client):
             return
         
         if message.content.startswith('!boober'):
+            self.promSummary.labels('boober').observe(1)
             booberImages = ('https://cdn.discordapp.com/attachments/330158485704802305/971049950546898964/boobergrab.png',
                             'https://cdn.discordapp.com/attachments/330158485704802305/971050030507106364/boobergold.png',
                             'https://cdn.discordapp.com/attachments/330158485704802305/971050375266304040/boobersaiyan.png')
@@ -323,6 +384,7 @@ class BeeClient(discord.Client):
             return
 
         if message.content.startswith('!rat'):
+            self.promSummary.labels('rat').observe(1)
             ratVids = ('https://cdn.discordapp.com/attachments/916068519307784302/979159552186527804/vertically_spinning_rat.mp4',
                        'https://cdn.discordapp.com/attachments/916068519307784302/979159552496914532/2_rats.mp4',
                        'https://media.discordapp.net/attachments/330158485704802305/978393356554096680/rat-ao5dfabunkv81.mp4',
@@ -340,11 +402,13 @@ class BeeClient(discord.Client):
                        'https://cdn.discordapp.com/attachments/916068519307784302/1000701086031695872/Little_Dark_Age_-_Horizontally_Spinning_Rat.mp4',
                        'https://cdn.discordapp.com/attachments/828687981460062238/1001539892087631922/IMG_2898.MP4',
                        'https://cdn.discordapp.com/attachments/647407524152344586/1008499175685627964/rtx.mp4',
-                       'https://cdn.discordapp.com/attachments/547301402137985034/1018327723032191077/VID_20220907_150746_252.mp4')
+                       'https://cdn.discordapp.com/attachments/547301402137985034/1018327723032191077/VID_20220907_150746_252.mp4',
+                       'https://cdn.discordapp.com/attachments/890184536393150494/1053364552303136778/youare.mp4')
             await message.channel.send(random.choice(ratVids))
             return
         
         if message.content.startswith('!hammerstein'):
+            self.promSummary.labels('hammerstein').observe(1)
             await message.channel.send('Buzzing for a bad image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -353,6 +417,7 @@ class BeeClient(discord.Client):
             )
             
             subreddit = await reddit.subreddit('pizzacrimes')
+            self.promSummary.labels('pizzacrimes').observe(1)
             while True:            
                 submission = await subreddit.random()
                 image_formats = ('png', 'jpg', 'jpeg', 'gif')
@@ -362,6 +427,7 @@ class BeeClient(discord.Client):
                     return
                 
         if message.content.startswith('!geology'):
+            self.promSummary.labels('geology').observe(1)
             await message.channel.send('Buzzing for a rocky image...')
             reddit = asyncpraw.Reddit(
                 client_id=redditID,
@@ -379,12 +445,14 @@ class BeeClient(discord.Client):
                     return
 
         if message.content.startswith('!kill'):
+            self.promSummary.labels('kill').observe(1)
             if not message.author.id == 162571470256472066:
                 await message.channel.send(f"I'm sorry {message.author.name}, I'm afraid I can t do that")
             else:
                 os.kill(os.getpid(),11)
         
         if message.content.startswith('!talk') or message.content.startswith('!speak') or message.content.startswith('!tay'):
+            self.promSummary.labels('talk').observe(1)
             seedWord = random.choice(wordList)
             sentenceLength = random.randint(7, 25)
 
@@ -399,6 +467,7 @@ class BeeClient(discord.Client):
             return
             
         if message.content.startswith('!nickme'):
+            self.promSummary.labels('nickme').observe(1)
             seedWord = random.choice(wordList)
             nickLength = random.randint(1, 2)
 
@@ -416,10 +485,13 @@ class BeeClient(discord.Client):
             return
         
         if message.content.startswith('!nickname'):
+            self.promSummary.labels('nickname').observe(1)
             rowCount = 0
             for row in cur.execute('SELECT COUNT(*) FROM nicknames'):
                 rowCount = row[0]
-                
+            
+            self.promNickGauge.set(float(rowCount))
+
             option = str(message.content).split(' ')[-1]
             
             if option == '!nickname':
@@ -454,6 +526,7 @@ class BeeClient(discord.Client):
                 return
             
         if message.content.startswith('!quote'):
+            self.promSummary.labels('quote').observe(1)
             if message.reference is None:
                 for row in cur.execute('SELECT * FROM quotes ORDER BY RANDOM() LIMIT 1'):
                     await message.channel.send(f"\"{row[0]}\"")
@@ -467,6 +540,7 @@ class BeeClient(discord.Client):
                 return
             
         if message.content.startswith('!dropquote'):
+            self.promSummary.labels('dropquote').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -484,8 +558,12 @@ class BeeClient(discord.Client):
                 await message.channel.send("Only moderators can do this.")
                 return  
             
+        if message.content.startswith('!emma'):
+            self.promSummary.labels('emma').observe(1)
+            return
 
         if message.content.startswith('!help'):
+            self.promSummary.labels('help').observe(1)
             msg = """```beebot Version 0.0.1bee
             
 Available commands:
@@ -503,6 +581,7 @@ Available commands:
 """
 
         if message.content.startswith('!modhelp'):
+            self.promSummary.labels('modhelp').observe(1)
 
             msg = """```beebot Version 0.0.1bee
             
@@ -525,6 +604,7 @@ Available commands:
             return
         
         if message.content.startswith('!tag'):
+            self.promSummary.labels('tag').observe(1)
             try:
                 roles = {}
                 for row in cur.execute('SELECT * FROM tags'):
@@ -548,6 +628,7 @@ Available commands:
                 await message.channel.send('Role removed.')
                 
         if message.content.startswith('!addtag'):
+            self.promSummary.labels('addtag').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -563,6 +644,7 @@ Available commands:
             return
         
         if message.content.startswith('!deltag'):
+            self.promSummary.labels('deltag').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -576,7 +658,8 @@ Available commands:
                 await message.channel.send('Tag deleted.')
             return
                 
-        if message.content.startswith('!color'):            
+        if message.content.startswith('!color'):
+            self.promSummary.labels('color').observe(1)            
             try:
                 roles = {}
                 for row in cur.execute('SELECT * FROM colors'):
@@ -605,6 +688,7 @@ Available commands:
                 await message.channel.send('Color removed.')
                 
         if message.content.startswith('!addcolor'):
+            self.promSummary.labels('addcolor').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -620,6 +704,7 @@ Available commands:
             return
         
         if message.content.startswith('!delcolor'):
+            self.promSummary.labels('delcolor').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -634,6 +719,7 @@ Available commands:
             return
                 
         if message.content.startswith('!addcommand'):
+            self.promSummary.labels('addcommand').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -649,6 +735,7 @@ Available commands:
             return
         
         if message.content.startswith('!delcommand'):
+            self.promSummary.labels('delcommand').observe(1)
             roleList = []
             modID = 383445089806188545
             
@@ -661,23 +748,32 @@ Available commands:
                 con.commit()
                 await message.channel.send('Command deleted.')
             return
-                
+        
+        if message.content.startswith('!metrics'):
+            self.promSummary.labels('metrics').observe(1)
+            await message.channel.send('https://animeistrash.org:3000/public-dashboards/d4a212aefbf245c29ce1b95352b03d43')
+            return
+        
+        if message.content.startswith('!list'):
+            self.promSummary.labels('list').observe(1)
+            msg = ''
+            for row in cur.execute('SELECT command FROM commands'):
+                msg = msg + row[0] + ', '
+            await message.channel.send(msg[:-2])
+            return    
+    
         if message.content.startswith('!'):
             command = message.content.split(' ')[0][1:]
             for row in cur.execute('SELECT * FROM commands'):
                 if command == row[0]:
                     if 'local/' in str(row[1]):
+                        self.promSummary.labels(command).observe(1)
                         await message.channel.send(file=discord.File(str(row[1])))
                     else:
+                        self.promSummary.labels(command).observe(1)
                         await message.channel.send(row[1])
                     return
                 
-        if message.content.startswith('!list'):
-            msg = ''
-            for row in cur.execute('SELECT command FROM commands'):
-                msg = msg + row[0] + ', '
-            await message.channel.send(msg[:-2])
-            return
 
 def get_message_emojis(m: discord.Message) -> typing.List[discord.PartialEmoji]:
     """ Returns a list of custom emojis in a message. """
@@ -711,6 +807,7 @@ nicknameList = {}
 con = sqlite3.connect('beebot.db')
 cur = con.cursor()
 
+start_http_server(8000)
 
 with open('token') as f:
     token = f.read()

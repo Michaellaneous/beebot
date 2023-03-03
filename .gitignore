@@ -6,3 +6,5 @@ markovClean.txt
 beebot.db
 beebot.db.bkp
 local/
+openaiToken
+*.png
