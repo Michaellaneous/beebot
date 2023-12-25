@@ -10,7 +10,7 @@ import collections
 import asyncio
 import sqlite3
 from datetime import datetime, timedelta
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import re
 from prometheus_client import start_http_server, Counter, Histogram, Gauge, Summary
@@ -751,7 +751,7 @@ Available commands:
         
         if message.content.startswith('!metrics'):
             self.promSummary.labels('metrics').observe(1)
-            await message.channel.send('https://animeistrash.org:3000/public-dashboards/d4a212aefbf245c29ce1b95352b03d43')
+            await message.channel.send('http://metrics.animeistrash.org/grafana/public-dashboards/1d67fa4a931f436c8024b9d421ccb727')
             return
         
         if message.content.startswith('!list'):
@@ -764,6 +764,8 @@ Available commands:
     
         if message.content.startswith('!'):
             command = message.content.split(' ')[0][1:]
+            if command is None:
+                return
             for row in cur.execute('SELECT * FROM commands'):
                 if command == row[0]:
                     if 'local/' in str(row[1]):
@@ -773,6 +775,21 @@ Available commands:
                         self.promSummary.labels(command).observe(1)
                         await message.channel.send(row[1])
                     return
+            else:
+                # Thanks a lot to https://github.com/Sheldan/Sissi/blob/master/python/modules/image-gen-api/python/endpoints/doge.py
+                with Image.open('semf_template.jpg') as im:
+                    d1 = ImageDraw.Draw(im)
+                    textBoxSize = (300, 240)
+                    W, H = textBoxSize
+                    font = ImageFont.truetype(f'impact.ttf', 60)
+                    _, _, w, h = d1.textbbox((0, 0), command, font=font)
+                    d1.text(((W-w)/2 + 320, (H-h)/2 + 120), command, font=font, fill=(255, 255, 255))
+
+                    im.save('temp.png', format='PNG')
+                    await message.channel.send(file=discord.File('temp.png'))
+                    os.remove('temp.png')
+                    return
+
                 
 
 def get_message_emojis(m: discord.Message) -> typing.List[discord.PartialEmoji]:

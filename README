@@ -1,5 +1,6 @@
 What you need:
 An sqlite3 DB called beebot.db
+impact.ttf
 
 With these 3 tables:
 nicknames (nick text)
